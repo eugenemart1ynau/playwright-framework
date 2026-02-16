@@ -5,10 +5,18 @@ A solid Playwright automation framework built with TypeScript. I put this togeth
 ## What's Inside
 
 - **Builder Pattern** - Create test data without the headache. Faker handles the random stuff, you override what matters.
+- **Test Data Factories** - Pre-built builders for users, addresses, products, orders, and more.
 - **Page Object Model** - Keep your page interactions organized and reusable.
+- **Test Tags** - Organize tests with @smoke, @regression, @critical, etc. Run what you need.
+- **Error Helpers** - Automatic screenshots and context capture when tests fail. Debug faster.
+- **Authentication Helpers** - Save/load auth state, manage tokens, reuse sessions across tests.
+- **Network Interception** - Mock APIs, block URLs, capture network traffic for debugging.
+- **Accessibility Testing** - Built-in a11y checks for heading hierarchy, alt text, form labels.
+- **Visual Regression** - Screenshot comparison utilities for visual testing.
 - **Environment switching** - Flip between local, test, stage, and prod without changing code.
 - **TypeScript strict mode** - Catch bugs before they bite you.
 - **Faker.js integration** - Realistic test data that actually looks like real data.
+- **CI/CD Ready** - GitHub Actions workflow included, ready to go.
 
 ## Getting Started
 
@@ -36,6 +44,13 @@ npm run test:headed
 # Run specific test files
 npm run test:auth
 npm run test:smoke
+
+# Run tests by tags (super useful!)
+npm run test:smoke        # Run @smoke tests
+npm run test:regression   # Run @regression tests
+npm run test:critical     # Run @critical tests
+npm run test:api          # Run @api tests
+npm run test:fast         # Run fast tests (smoke, excluding flaky/slow)
 
 # Debug mode - pauses execution so you can inspect
 npm run test:debug
@@ -103,6 +118,35 @@ const customUser = new UserBuilder()
 ```
 
 The builder uses Faker under the hood, so you get realistic data without thinking about it. But when you need something specific, just override it.
+
+### Test Data Factories
+
+We've got builders for more than just users. Use the factory for quick access to common test data:
+
+```typescript
+import { TestDataFactory } from '../src/data/factories/testDataFactory';
+
+// Quick admin user
+const admin = TestDataFactory.createAdminUser();
+
+// US address
+const address = TestDataFactory.createUSAddress();
+
+// In-stock product
+const product = TestDataFactory.createInStockProduct();
+
+// Simple order
+const order = TestDataFactory.createSimpleOrder();
+
+// Or use builders directly for more control
+import { AddressBuilder, ProductBuilder, OrderBuilder } from '../src/data/builders';
+
+const customAddress = new AddressBuilder()
+  .withStreet('123 Main St')
+  .withCity('Seattle')
+  .withState('WA')
+  .buildUS();
+```
 
 ### Seeding for Reproducible Tests
 
@@ -241,6 +285,149 @@ test('login flow', async ({ loginPage, dashboardPage }) => {
 
 I don't always use fixtures, but they're nice when you're using the same page objects across multiple tests in a file.
 
+**Bonus:** The fixtures automatically capture screenshots and error context when tests fail. No extra code needed - it just works.
+
+## Test Tags
+
+Tag your tests to organize and filter them easily:
+
+```typescript
+import { TestTags } from '../src/utils/tags';
+
+test(`critical login test ${TestTags.SMOKE} ${TestTags.CRITICAL}`, async ({ page }) => {
+  // This test will run when you use: npm run test:smoke or npm run test:critical
+});
+```
+
+Available tags:
+- `@smoke` - Quick checks that core functionality works
+- `@regression` - Comprehensive tests covering existing functionality
+- `@critical` - Must-pass tests for the app to be considered working
+- `@api` - API tests (direct API calls, not UI)
+- `@ui` - UI tests
+- `@slow` - Tests that take a long time
+- `@flaky` - Known unstable tests (skip when needed)
+- `@skip-ci` - Tests that should only run locally
+
+Run specific tags:
+```bash
+npm run test:smoke        # Run smoke tests
+npm run test:critical     # Run critical tests
+npm run test:fast         # Run fast tests (smoke, excluding flaky/slow)
+npx playwright test --grep "@smoke|@regression"  # Custom combinations
+```
+
+## Error Handling
+
+When tests fail, the framework automatically captures:
+- Full-page screenshots
+- Page HTML
+- Console logs
+- Network requests/responses
+
+This happens automatically if you use the extended fixtures. No extra code needed.
+
+For manual error capture:
+```typescript
+import { captureErrorScreenshot, captureFullErrorContext } from '../src/utils/errorHelpers';
+
+try {
+  // your test code
+} catch (error) {
+  await captureFullErrorContext(page, testInfo, 'my-error');
+  throw error;
+}
+```
+
+## Authentication Helpers
+
+Save time by authenticating once and reusing auth state:
+
+```typescript
+import { saveAuthState, getAuthToken, setAuthToken } from '../src/utils/auth';
+
+// Save auth state after logging in
+await saveAuthState(context, 'playwright/.auth/user.json');
+
+// Get token for API calls
+const token = await getAuthToken(page);
+
+// Set token to bypass login UI
+await setAuthToken(page, 'your-token-here');
+```
+
+Then use it in Playwright config:
+```typescript
+use: {
+  storageState: 'playwright/.auth/user.json', // Reuse auth
+}
+```
+
+## Network Interception
+
+Mock APIs or block requests:
+
+```typescript
+import { mockApiResponse, blockUrl, waitForApiRequest } from '../src/utils/network';
+
+// Mock an API response
+await mockApiResponse(page, '/api/users', {
+  status: 200,
+  body: { id: 1, name: 'Test User' }
+});
+
+// Block analytics or ads
+await blockUrl(page, '**/analytics.js');
+
+// Wait for specific API call
+await waitForApiRequest(page, '/api/users');
+```
+
+## Accessibility Testing
+
+Quick a11y checks:
+
+```typescript
+import { runAccessibilityChecks } from '../src/utils/accessibility';
+
+const report = await runAccessibilityChecks(page);
+// Returns: { headingHierarchy, imagesWithoutAlt, inputsWithoutLabels }
+```
+
+## Visual Regression
+
+Screenshot comparison:
+
+```typescript
+import { compareScreenshot, compareElementScreenshot } from '../src/utils/visual';
+
+// Full page comparison
+await compareScreenshot(page, 'login-page', 0.1);
+
+// Element-level comparison
+await compareElementScreenshot(page, '.header', 'header-element', 0.1);
+```
+
+## API Testing
+
+Test APIs directly without UI:
+
+```typescript
+import { ApiClient } from '../src/core/apiClient';
+
+test('API test', async ({ request }) => {
+  const api = new ApiClient(request);
+  
+  const response = await api.get('/api/users/1');
+  await api.expectSuccess(response);
+  
+  const user = await response.json();
+  expect(user.id).toBe(1);
+});
+```
+
+See `tests/api.spec.ts` for more examples.
+
 ## Project Structure
 
 Here's how things are organized:
@@ -252,29 +439,48 @@ Here's how things are organized:
 │   │   └── env.ts              # Environment URLs and config
 │   ├── core/
 │   │   ├── basePage.ts         # Base class all page objects extend
-│   │   └── apiClient.ts        # Simple API client if you need it
+│   │   └── apiClient.ts        # API client wrapper
 │   ├── data/
-│   │   ├── builders/
-│   │   │   └── userBuilder.ts  # Builder pattern implementation
-│   │   └── models/
-│   │       └── user.ts         # TypeScript interfaces/models
+│   │   ├── builders/           # Builder pattern implementations
+│   │   │   ├── userBuilder.ts
+│   │   │   ├── addressBuilder.ts
+│   │   │   ├── productBuilder.ts
+│   │   │   └── orderBuilder.ts
+│   │   ├── factories/
+│   │   │   └── testDataFactory.ts  # Convenient factory methods
+│   │   └── models/             # TypeScript interfaces
 │   ├── fixtures/
 │   │   └── testFixtures.ts     # Extended Playwright fixtures
-│   ├── pages/
-│   │   ├── loginPage.ts        # Your page objects go here
+│   ├── pages/                  # Page objects
+│   │   ├── loginPage.ts
 │   │   └── dashboardPage.ts
-│   └── utils/
-│       ├── logger.ts           # Simple logging utility
-│       └── random.ts           # Faker helpers and seeding
+│   ├── setup/                  # Global setup/teardown
+│   │   ├── global-setup.ts
+│   │   └── global-teardown.ts
+│   └── utils/                  # Utility helpers
+│       ├── accessibility.ts    # A11y testing
+│       ├── auth.ts             # Auth helpers
+│       ├── errorHelpers.ts     # Error capture
+│       ├── fileUpload.ts       # File upload helpers
+│       ├── logger.ts           # Logging
+│       ├── network.ts          # Network interception
+│       ├── random.ts           # Faker helpers
+│       ├── tags.ts             # Test tags
+│       ├── visual.ts           # Visual regression
+│       └── wait.ts             # Wait utilities
 ├── tests/
-│   ├── auth.spec.ts            # Example tests
-│   └── smoke.spec.ts
-├── playwright.config.ts        # Playwright config
-├── tsconfig.json               # TypeScript config
+│   ├── api.spec.ts            # API test examples
+│   ├── auth.spec.ts           # Auth test examples
+│   └── smoke.spec.ts          # Smoke test examples
+├── .github/
+│   └── workflows/
+│       └── ci.yml             # GitHub Actions CI
+├── playwright.config.ts       # Playwright config
+├── tsconfig.json              # TypeScript config
 └── package.json
 ```
 
-Pretty standard structure. Page objects in `pages/`, builders in `data/builders/`, tests in `tests/`. If you need to add something new, follow the pattern.
+Pretty standard structure. Page objects in `pages/`, builders in `data/builders/`, utilities in `utils/`, tests in `tests/`. If you need to add something new, follow the pattern.
 
 ## Best Practices (Things I Learned the Hard Way)
 
@@ -311,12 +517,33 @@ This usually means you're not waiting for things properly. Check:
 - Make sure `src/config/env.ts` has the right URLs.
 - You can always override with `BASE_URL` if needed.
 
+## CI/CD
+
+The framework includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that:
+- Runs tests on push/PR
+- Uploads test artifacts (reports, screenshots)
+- Ready to use out of the box
+
+Just push to GitHub and it runs. Configure your test credentials as GitHub Secrets if needed.
+
+## Global Setup/Teardown
+
+For one-time setup (like authenticating once for all tests), use global setup:
+
+```typescript
+// src/setup/global-setup.ts
+// Uncomment in playwright.config.ts to enable
+```
+
+This authenticates once and saves auth state, so all tests can reuse it without logging in every time.
+
 ## Adding New Stuff
 
 When you add features:
 - Follow the existing code style (check other files for examples).
 - Add page objects for new pages.
 - Use builders for test data.
+- Tag your tests appropriately.
 - Update this README if you add something that others should know about.
 
 ## License
