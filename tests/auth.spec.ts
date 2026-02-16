@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test';
 import { LoginPage } from '../src/pages/loginPage';
 import { DashboardPage } from '../src/pages/dashboardPage';
 import { getCredentials } from '../src/config/env';
+import { TestTags } from '../src/utils/tags';
+import { captureErrorScreenshot } from '../src/utils/errorHelpers';
 
 /**
  * Authentication tests. These verify the login flow works correctly.
@@ -21,7 +23,7 @@ test.describe('Authentication', () => {
       }
     }
   });
-  test('should login successfully with valid credentials', async ({ page }) => {
+  test(`should login successfully with valid credentials ${TestTags.SMOKE} ${TestTags.CRITICAL}`, async ({ page }) => {
     const loginPage = new LoginPage(page);
     const dashboardPage = new DashboardPage(page);
 

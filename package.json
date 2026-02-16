@@ -8,7 +8,11 @@
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
     "test:auth": "playwright test tests/auth.spec.ts",
-    "test:smoke": "playwright test tests/smoke.spec.ts"
+    "test:smoke": "playwright test --grep @smoke",
+    "test:regression": "playwright test --grep @regression",
+    "test:critical": "playwright test --grep @critical",
+    "test:api": "playwright test --grep @api",
+    "test:fast": "playwright test --grep '@smoke !@flaky !@slow'"
   },
   "keywords": [
     "playwright",

@@ -1,6 +1,9 @@
 import { faker } from '@faker-js/faker';
 import { User } from '../models/user';
 
+// Re-export User for convenience
+export type { User };
+
 /**
  * UserBuilder implements the Builder pattern for creating test users.
  * 

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { ApiClient } from '../src/core/apiClient';
+import { TestTags } from '../src/utils/tags';
 
 /**
  * API testing examples. These show how to test APIs directly
@@ -7,7 +8,7 @@ import { ApiClient } from '../src/core/apiClient';
  * and testing edge cases.
  */
 test.describe('API Tests', () => {
-  test('should get user data from API', async ({ request }) => {
+  test(`should get user data from API ${TestTags.API}`, async ({ request }) => {
     const apiClient = new ApiClient(request);
 
     // Make API call
