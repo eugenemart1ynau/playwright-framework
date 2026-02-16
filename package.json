@@ -1,5 +1,5 @@
 {
-  "name": "playwright-typescript-framework",
+  "name": "playwright-framework",
   "version": "1.0.0",
   "description": "Production-ready Playwright automation framework with Builder Pattern and Page Object Model",
   "scripts": {
