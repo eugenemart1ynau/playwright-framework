@@ -74,4 +74,22 @@ export class LoginPage extends BasePage {
   async getErrorMessage(): Promise<string> {
     return await this.errorMessage.textContent() ?? '';
   }
+
+  /**
+   * Clear the login form. Useful if you need to reset between attempts.
+   */
+  async clearForm(): Promise<void> {
+    await this.emailInput.clear();
+    await this.passwordInput.clear();
+  }
+
+  /**
+   * Check if user is already logged in by looking for dashboard elements.
+   * Useful to skip login if already authenticated.
+   */
+  async isAlreadyLoggedIn(): Promise<boolean> {
+    // If we see dashboard elements, we're probably already logged in
+    const dashboardIndicator = this.page.locator('[data-testid="dashboard"], [href*="dashboard"]');
+    return await this.isVisible(dashboardIndicator);
+  }
 }

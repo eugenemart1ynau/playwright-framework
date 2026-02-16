@@ -53,4 +53,55 @@ export class ApiClient {
     logger.debug(`DELETE ${url}`);
     return await this.request.delete(url, { headers });
   }
+
+  /**
+   * Make a PUT request. Useful for updating resources.
+   */
+  async put(
+    path: string,
+    data?: unknown,
+    headers?: Record<string, string>
+  ): Promise<APIResponse> {
+    const url = `${this.baseURL}${path}`;
+    logger.debug(`PUT ${url}`);
+    return await this.request.put(url, {
+      data,
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers,
+      },
+    });
+  }
+
+  /**
+   * Make a PATCH request. Useful for partial updates.
+   */
+  async patch(
+    path: string,
+    data?: unknown,
+    headers?: Record<string, string>
+  ): Promise<APIResponse> {
+    const url = `${this.baseURL}${path}`;
+    logger.debug(`PATCH ${url}`);
+    return await this.request.patch(url, {
+      data,
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers,
+      },
+    });
+  }
+
+  /**
+   * Check if response status is successful (2xx range).
+   * Throws an error with response details if not successful.
+   */
+  async expectSuccess(response: APIResponse): Promise<void> {
+    if (!response.ok()) {
+      const body = await response.text().catch(() => 'Unable to read response body');
+      throw new Error(
+        `API request failed: ${response.status()} ${response.statusText()}\nBody: ${body}`
+      );
+    }
+  }
 }

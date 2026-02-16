@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { LoginPage } from '../src/pages/loginPage';
 import { DashboardPage } from '../src/pages/dashboardPage';
 import { UserBuilder } from '../src/data/builders/userBuilder';
-import { setSeed } from '../src/utils/random';
+import { setSeed, resetSeed } from '../src/utils/random';
 
 /**
  * Smoke tests - quick checks that core functionality works.
@@ -11,6 +11,10 @@ import { setSeed } from '../src/utils/random';
  * there's likely a bigger issue than just a flaky test.
  */
 test.describe('Smoke Tests', () => {
+  // Reset faker seed after tests that use seeding
+  test.afterEach(() => {
+    resetSeed();
+  });
   test('should load login page', async ({ page }) => {
     const loginPage = new LoginPage(page);
     

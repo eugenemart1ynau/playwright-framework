@@ -17,9 +17,11 @@ export abstract class BasePage {
 
   /**
    * Navigate to a relative path. Uses baseURL from config automatically.
+   * Waits for the page to be fully loaded before returning.
    */
   async goto(path = ''): Promise<void> {
-    await this.page.goto(path);
+    await this.page.goto(path, { waitUntil: 'domcontentloaded' });
+    await this.page.waitForLoadState('networkidle');
     logger.debug(`Navigated to ${path}`);
   }
 
@@ -57,5 +59,30 @@ export abstract class BasePage {
    */
   async getTitle(): Promise<string> {
     return await this.page.title();
+  }
+
+  /**
+   * Take a screenshot. Useful for debugging or visual regression testing.
+   * Screenshots are saved to test-results/ by default.
+   */
+  async takeScreenshot(name: string): Promise<void> {
+    await this.page.screenshot({ path: `test-results/${name}-${Date.now()}.png` });
+    logger.debug(`Screenshot saved: ${name}`);
+  }
+
+  /**
+   * Wait for URL to match a pattern. Useful when navigation happens
+   * asynchronously and you need to verify you're on the right page.
+   */
+  async waitForUrl(urlPattern: string | RegExp, timeout = 10000): Promise<void> {
+    await this.page.waitForURL(urlPattern, { timeout });
+  }
+
+  /**
+   * Scroll element into view. Sometimes elements are off-screen and need
+   * to be scrolled to before interaction.
+   */
+  async scrollIntoView(locator: Locator): Promise<void> {
+    await locator.scrollIntoViewIfNeeded();
   }
 }

@@ -17,10 +17,15 @@ export default defineConfig({
     baseURL: getBaseUrl(),
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    video: 'retain-on-failure', // Keep videos of failed tests for debugging
     // We keep this timeout reasonable - if tests need more, they can override
     actionTimeout: 10000,
     navigationTimeout: 30000,
   },
+
+  // Global setup/teardown hooks if you need them
+  // globalSetup: require.resolve('./src/setup/global-setup.ts'),
+  // globalTeardown: require.resolve('./src/setup/global-teardown.ts'),
 
   projects: [
     {

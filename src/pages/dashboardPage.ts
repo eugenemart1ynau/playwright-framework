@@ -49,8 +49,8 @@ export class DashboardPage extends BasePage {
     // If there's a user menu, click it first
     if (await this.isVisible(this.userMenu)) {
       await this.userMenu.click();
-      // Small wait for menu to appear
-      await this.page.waitForTimeout(300);
+      // Wait for logout button to appear in the menu instead of arbitrary timeout
+      await this.logoutButton.waitFor({ state: 'visible', timeout: 2000 });
     }
     
     await this.logoutButton.click();

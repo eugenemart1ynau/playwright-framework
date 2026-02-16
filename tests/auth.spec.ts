@@ -10,6 +10,17 @@ import { getCredentials } from '../src/config/env';
  * you'll need to adjust these tests for your specific auth setup.
  */
 test.describe('Authentication', () => {
+  // Clean up after each test - logout if we're logged in
+  test.afterEach(async ({ page }) => {
+    const dashboardPage = new DashboardPage(page);
+    if (await dashboardPage.isLoggedIn()) {
+      try {
+        await dashboardPage.logout();
+      } catch {
+        // If logout fails, that's okay - test might have already logged out
+      }
+    }
+  });
   test('should login successfully with valid credentials', async ({ page }) => {
     const loginPage = new LoginPage(page);
     const dashboardPage = new DashboardPage(page);

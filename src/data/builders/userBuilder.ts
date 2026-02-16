@@ -77,4 +77,13 @@ export class UserBuilder {
       phone: this.user.phone,
     };
   }
+
+  /**
+   * Reset the builder to start fresh. Useful if you're reusing
+   * a builder instance across multiple test cases.
+   */
+  reset(): this {
+    this.user = {};
+    return this;
+  }
 }
