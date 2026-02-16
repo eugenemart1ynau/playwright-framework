@@ -11,7 +11,13 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  reporter: [
+    ['html'],
+    ['json', { outputFile: 'test-results/results.json' }],
+    ['list'], // Console output
+    // Uncomment for Allure reporting (requires @playwright/test-reporter-allure)
+    // ['allure-playwright'],
+  ],
   
   use: {
     baseURL: getBaseUrl(),
@@ -23,7 +29,8 @@ export default defineConfig({
     navigationTimeout: 30000,
   },
 
-  // Global setup/teardown hooks if you need them
+  // Global setup/teardown hooks
+  // Uncomment these if you want to authenticate once and reuse auth state
   // globalSetup: require.resolve('./src/setup/global-setup.ts'),
   // globalTeardown: require.resolve('./src/setup/global-teardown.ts'),
 
@@ -40,6 +47,15 @@ export default defineConfig({
     // {
     //   name: 'webkit',
     //   use: { ...devices['Desktop Safari'] },
+    // },
+    // Mobile testing examples
+    // {
+    //   name: 'Mobile Chrome',
+    //   use: { ...devices['Pixel 5'] },
+    // },
+    // {
+    //   name: 'Mobile Safari',
+    //   use: { ...devices['iPhone 12'] },
     // },
   ],
 });
